@@ -20,6 +20,7 @@
 #include "llvm/IR/Operator.h"
 #include "llvm/IR/ProfDataUtils.h"
 #include "llvm/IR/Type.h"
+#include "llvm/Transforms/Utils/Local.h"
 using namespace llvm;
 
 Instruction::Instruction(Type *ty, unsigned it, Use *Ops, unsigned NumOps,
@@ -100,6 +101,7 @@ void Instruction::handleMarkerRemoval() {
 }
 
 BasicBlock::iterator Instruction::eraseFromParent() {
+  salvageDebugInfo(*this);
   handleMarkerRemoval();
   return getParent()->getInstList().erase(getIterator());
 }
