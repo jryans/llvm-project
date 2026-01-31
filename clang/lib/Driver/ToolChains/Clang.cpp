@@ -6234,26 +6234,27 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
   llvm::codegenoptions::DebugInfoKind DebugInfoKind =
       llvm::codegenoptions::NoDebugInfo;
   DwarfFissionKind DwarfFission = DwarfFissionKind::None;
-  renderDebugOptions(TC, D, RawTriple, Args, types::isLLVMIR(InputType),
-                     CmdArgs, Output, DebugInfoKind, DwarfFission);
+  // JRS: Disable debug options
+  // renderDebugOptions(TC, D, RawTriple, Args, types::isLLVMIR(InputType),
+  //                    CmdArgs, Output, DebugInfoKind, DwarfFission);
 
-  // Add the split debug info name to the command lines here so we
-  // can propagate it to the backend.
-  bool SplitDWARF = (DwarfFission != DwarfFissionKind::None) &&
-                    (TC.getTriple().isOSBinFormatELF() ||
-                     TC.getTriple().isOSBinFormatWasm() ||
-                     TC.getTriple().isOSBinFormatCOFF()) &&
-                    (isa<AssembleJobAction>(JA) || isa<CompileJobAction>(JA) ||
-                     isa<BackendJobAction>(JA));
-  if (SplitDWARF) {
-    const char *SplitDWARFOut = SplitDebugName(JA, Args, Input, Output);
-    CmdArgs.push_back("-split-dwarf-file");
-    CmdArgs.push_back(SplitDWARFOut);
-    if (DwarfFission == DwarfFissionKind::Split) {
-      CmdArgs.push_back("-split-dwarf-output");
-      CmdArgs.push_back(SplitDWARFOut);
-    }
-  }
+  // // Add the split debug info name to the command lines here so we
+  // // can propagate it to the backend.
+  // bool SplitDWARF = (DwarfFission != DwarfFissionKind::None) &&
+  //                   (TC.getTriple().isOSBinFormatELF() ||
+  //                    TC.getTriple().isOSBinFormatWasm() ||
+  //                    TC.getTriple().isOSBinFormatCOFF()) &&
+  //                   (isa<AssembleJobAction>(JA) || isa<CompileJobAction>(JA) ||
+  //                    isa<BackendJobAction>(JA));
+  // if (SplitDWARF) {
+  //   const char *SplitDWARFOut = SplitDebugName(JA, Args, Input, Output);
+  //   CmdArgs.push_back("-split-dwarf-file");
+  //   CmdArgs.push_back(SplitDWARFOut);
+  //   if (DwarfFission == DwarfFissionKind::Split) {
+  //     CmdArgs.push_back("-split-dwarf-output");
+  //     CmdArgs.push_back(SplitDWARFOut);
+  //   }
+  // }
 
   // Pass the linker version in use.
   if (Arg *A = Args.getLastArg(options::OPT_mlinker_version_EQ)) {
@@ -8754,68 +8755,69 @@ void ClangAs::ConstructJob(Compilation &C, const JobAction &JA,
   // with an actual assembly file.
   bool WantDebug = false;
   Args.ClaimAllArgs(options::OPT_g_Group);
-  if (Arg *A = Args.getLastArg(options::OPT_g_Group))
-    WantDebug = !A->getOption().matches(options::OPT_g0) &&
-                !A->getOption().matches(options::OPT_ggdb0);
+  // JRS: Disable debug options
+  // if (Arg *A = Args.getLastArg(options::OPT_g_Group))
+  //   WantDebug = !A->getOption().matches(options::OPT_g0) &&
+  //               !A->getOption().matches(options::OPT_ggdb0);
 
-  // If a -gdwarf argument appeared, remember it.
-  bool EmitDwarf = false;
-  if (const Arg *A = getDwarfNArg(Args))
-    EmitDwarf = checkDebugInfoOption(A, Args, D, getToolChain());
+  // // If a -gdwarf argument appeared, remember it.
+  // bool EmitDwarf = false;
+  // if (const Arg *A = getDwarfNArg(Args))
+  //   EmitDwarf = checkDebugInfoOption(A, Args, D, getToolChain());
 
-  bool EmitCodeView = false;
-  if (const Arg *A = Args.getLastArg(options::OPT_gcodeview))
-    EmitCodeView = checkDebugInfoOption(A, Args, D, getToolChain());
+  // bool EmitCodeView = false;
+  // if (const Arg *A = Args.getLastArg(options::OPT_gcodeview))
+  //   EmitCodeView = checkDebugInfoOption(A, Args, D, getToolChain());
 
-  // If the user asked for debug info but did not explicitly specify -gcodeview
-  // or -gdwarf, ask the toolchain for the default format.
-  if (!EmitCodeView && !EmitDwarf && WantDebug) {
-    switch (getToolChain().getDefaultDebugFormat()) {
-    case llvm::codegenoptions::DIF_CodeView:
-      EmitCodeView = true;
-      break;
-    case llvm::codegenoptions::DIF_DWARF:
-      EmitDwarf = true;
-      break;
-    }
-  }
+  // // If the user asked for debug info but did not explicitly specify -gcodeview
+  // // or -gdwarf, ask the toolchain for the default format.
+  // if (!EmitCodeView && !EmitDwarf && WantDebug) {
+  //   switch (getToolChain().getDefaultDebugFormat()) {
+  //   case llvm::codegenoptions::DIF_CodeView:
+  //     EmitCodeView = true;
+  //     break;
+  //   case llvm::codegenoptions::DIF_DWARF:
+  //     EmitDwarf = true;
+  //     break;
+  //   }
+  // }
 
-  // If the arguments don't imply DWARF, don't emit any debug info here.
-  if (!EmitDwarf)
-    WantDebug = false;
+  // // If the arguments don't imply DWARF, don't emit any debug info here.
+  // if (!EmitDwarf)
+  //   WantDebug = false;
 
   llvm::codegenoptions::DebugInfoKind DebugInfoKind =
       llvm::codegenoptions::NoDebugInfo;
 
-  // Add the -fdebug-compilation-dir flag if needed.
-  const char *DebugCompilationDir =
-      addDebugCompDirArg(Args, CmdArgs, C.getDriver().getVFS());
+  // // Add the -fdebug-compilation-dir flag if needed.
+  // const char *DebugCompilationDir =
+  //     addDebugCompDirArg(Args, CmdArgs, C.getDriver().getVFS());
 
-  if (SourceAction->getType() == types::TY_Asm ||
-      SourceAction->getType() == types::TY_PP_Asm) {
-    // You might think that it would be ok to set DebugInfoKind outside of
-    // the guard for source type, however there is a test which asserts
-    // that some assembler invocation receives no -debug-info-kind,
-    // and it's not clear whether that test is just overly restrictive.
-    DebugInfoKind = (WantDebug ? llvm::codegenoptions::DebugInfoConstructor
-                               : llvm::codegenoptions::NoDebugInfo);
+  // if (SourceAction->getType() == types::TY_Asm ||
+  //     SourceAction->getType() == types::TY_PP_Asm) {
+  //   // You might think that it would be ok to set DebugInfoKind outside of
+  //   // the guard for source type, however there is a test which asserts
+  //   // that some assembler invocation receives no -debug-info-kind,
+  //   // and it's not clear whether that test is just overly restrictive.
+  //   DebugInfoKind = (WantDebug ? llvm::codegenoptions::DebugInfoConstructor
+  //                              : llvm::codegenoptions::NoDebugInfo);
 
-    addDebugPrefixMapArg(getToolChain().getDriver(), getToolChain(), Args,
-                         CmdArgs);
+  //   addDebugPrefixMapArg(getToolChain().getDriver(), getToolChain(), Args,
+  //                        CmdArgs);
 
-    // Set the AT_producer to the clang version when using the integrated
-    // assembler on assembly source files.
-    CmdArgs.push_back("-dwarf-debug-producer");
-    CmdArgs.push_back(Args.MakeArgString(getClangFullVersion()));
+  //   // Set the AT_producer to the clang version when using the integrated
+  //   // assembler on assembly source files.
+  //   CmdArgs.push_back("-dwarf-debug-producer");
+  //   CmdArgs.push_back(Args.MakeArgString(getClangFullVersion()));
 
-    // And pass along -I options
-    Args.AddAllArgs(CmdArgs, options::OPT_I);
-  }
-  const unsigned DwarfVersion = getDwarfVersion(getToolChain(), Args);
-  RenderDebugEnablingArgs(Args, CmdArgs, DebugInfoKind, DwarfVersion,
-                          llvm::DebuggerKind::Default);
-  renderDwarfFormat(D, Triple, Args, CmdArgs, DwarfVersion);
-  RenderDebugInfoCompressionArgs(Args, CmdArgs, D, getToolChain());
+  //   // And pass along -I options
+  //   Args.AddAllArgs(CmdArgs, options::OPT_I);
+  // }
+  // const unsigned DwarfVersion = getDwarfVersion(getToolChain(), Args);
+  // RenderDebugEnablingArgs(Args, CmdArgs, DebugInfoKind, DwarfVersion,
+  //                         llvm::DebuggerKind::Default);
+  // renderDwarfFormat(D, Triple, Args, CmdArgs, DwarfVersion);
+  // RenderDebugInfoCompressionArgs(Args, CmdArgs, D, getToolChain());
 
   // Handle -fPIC et al -- the relocation-model affects the assembler
   // for some targets.
@@ -8923,28 +8925,29 @@ void ClangAs::ConstructJob(Compilation &C, const JobAction &JA,
 
   Args.AddAllArgs(CmdArgs, options::OPT_mllvm);
 
-  if (DebugInfoKind > llvm::codegenoptions::NoDebugInfo && Output.isFilename())
-    addDebugObjectName(Args, CmdArgs, DebugCompilationDir,
-                       Output.getFilename());
+  // JRS: Disable debug options
+  // if (DebugInfoKind > llvm::codegenoptions::NoDebugInfo && Output.isFilename())
+  //   addDebugObjectName(Args, CmdArgs, DebugCompilationDir,
+  //                      Output.getFilename());
 
-  // Fixup any previous commands that use -object-file-name because when we
-  // generated them, the final .obj name wasn't yet known.
-  for (Command &J : C.getJobs()) {
-    if (SourceAction != FindSource(&J.getSource()))
-      continue;
-    auto &JArgs = J.getArguments();
-    for (unsigned I = 0; I < JArgs.size(); ++I) {
-      if (StringRef(JArgs[I]).starts_with("-object-file-name=") &&
-          Output.isFilename()) {
-       ArgStringList NewArgs(JArgs.begin(), JArgs.begin() + I);
-       addDebugObjectName(Args, NewArgs, DebugCompilationDir,
-                          Output.getFilename());
-       NewArgs.append(JArgs.begin() + I + 1, JArgs.end());
-       J.replaceArguments(NewArgs);
-       break;
-      }
-    }
-  }
+  // // Fixup any previous commands that use -object-file-name because when we
+  // // generated them, the final .obj name wasn't yet known.
+  // for (Command &J : C.getJobs()) {
+  //   if (SourceAction != FindSource(&J.getSource()))
+  //     continue;
+  //   auto &JArgs = J.getArguments();
+  //   for (unsigned I = 0; I < JArgs.size(); ++I) {
+  //     if (StringRef(JArgs[I]).starts_with("-object-file-name=") &&
+  //         Output.isFilename()) {
+  //      ArgStringList NewArgs(JArgs.begin(), JArgs.begin() + I);
+  //      addDebugObjectName(Args, NewArgs, DebugCompilationDir,
+  //                         Output.getFilename());
+  //      NewArgs.append(JArgs.begin() + I + 1, JArgs.end());
+  //      J.replaceArguments(NewArgs);
+  //      break;
+  //     }
+  //   }
+  // }
 
   assert(Output.isFilename() && "Unexpected lipo output.");
   CmdArgs.push_back("-o");
