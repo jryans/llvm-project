@@ -347,6 +347,19 @@ ApplyInlineDebugLocation::~ApplyInlineDebugLocation() {
   DI.EmitLocation(CGF->Builder, SavedLocation);
 }
 
+static llvm::DILocation *createBuiltinInlineAt(CodeGenFunction &CGF,
+                                               GlobalDecl GD) {
+  if (!CGF.getDebugInfo()) {
+    return nullptr;
+  }
+  auto &DI = *CGF.getDebugInfo();
+  return DI.createBuiltinFunctionLocation(CGF.Builder, GD);
+}
+
+ApplyBuiltinDebugLocation::ApplyBuiltinDebugLocation(CodeGenFunction &CGF,
+                                                     GlobalDecl BuiltinFn)
+    : CGF(&CGF), Apply(CGF, createBuiltinInlineAt(CGF, BuiltinFn)) {}
+
 void CGDebugInfo::setLocation(SourceLocation Loc) {
   // If the new location isn't valid return.
   if (Loc.isInvalid())
@@ -5025,6 +5038,14 @@ void CGDebugInfo::EmitInlineFunctionEnd(CGBuilderTy &Builder) {
   assert(CurInlinedAt && "unbalanced inline scope stack");
   EmitFunctionEnd(Builder, nullptr);
   setInlinedAt(llvm::DebugLoc(CurInlinedAt).getInlinedAt());
+}
+
+llvm::DILocation *
+CGDebugInfo::createBuiltinFunctionLocation(CGBuilderTy &Builder,
+                                           GlobalDecl GD) {
+  const auto *FD = cast<FunctionDecl>(GD.getDecl());
+  return CreateSyntheticInlineAt(Builder.getCurrentDebugLocation(),
+                                 getFunctionName(FD));
 }
 
 void CGDebugInfo::EmitLocation(CGBuilderTy &Builder, SourceLocation Loc) {
