@@ -7115,6 +7115,13 @@ RValue CodeGenFunction::EmitCall(QualType CalleeType,
         // Set !alloc_token metadata.
         EmitAllocToken(LocalCallOrInvoke, E);
       }
+      // Add allocation metadata to call site
+      // TODO: Share type inference with "alloc token" path above
+      if (CGDebugInfo *DI = getDebugInfo())
+        DI->addHeapAllocSiteMetadata(
+            LocalCallOrInvoke,
+            infer_alloc::inferPossibleType(E, getContext(), CurCast),
+            E->getExprLoc());
     }
   }
   if (CallOrInvoke)
